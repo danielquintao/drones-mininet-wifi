@@ -93,6 +93,19 @@ def get_trace(sta,start_pos, midle_pos, final_pos):
         actual_pos[1] += vel_y
         actual_pos[2] = 0.0
         sta.p.append(tuple(actual_pos))
+    
+    actual_pos = list(final_pos)
+    for data in range(20):
+        sta.p.append(final_pos)
+    
+    for data in range(10):
+        vel_x = (start_pos[0] - final_pos[0])/10
+        vel_y = (start_pos[1] - final_pos[1])/10
+        actual_pos[0] += vel_x
+        actual_pos[1] += vel_y
+        actual_pos[2] = 0.0
+        sta.p.append(tuple(actual_pos))
+    
 
 
 if __name__ == '__main__':
