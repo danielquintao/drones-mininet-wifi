@@ -27,11 +27,11 @@ def create_app(net):
         node = request.args.get("node")
         latdir = float(request.args.get("latdir"))
         longdir = float(request.args.get("longdir"))
-        new_vel = (latdir, longdir)
+        new_vel = (longdir, latdir)
         n = len(net.get(node).p)
         if n > 0:
-            curr_pos = net.get(node).p[0]
-            new_trace = [(curr_pos[0] + k*new_vel[1], curr_pos[0] + k*new_vel[1], 0.0) for k in range(n)]
+            curr_pos = net.get(node).position
+            new_trace = [(curr_pos[0] + k*new_vel[0], curr_pos[1] + k*new_vel[1], 0.0) for k in range(n)]
             net.get(node).p = new_trace
         return "Ok", 200 # OK
 
