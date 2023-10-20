@@ -1,7 +1,3 @@
-#!/usr/bin/python
-"""Example to show how we can change the path ("trace") of a drone/node after having already initialized the simulation
-"""
-
 import os
 import sys
 import time
@@ -14,6 +10,8 @@ from mn_wifi.cli import CLI
 from mn_wifi.net import Mininet_wifi
 from mn_wifi.link import wmediumd, adhoc
 from mn_wifi.wmediumdConnector import interference
+
+from server import create_app
 
 
 def topology():
@@ -61,6 +59,9 @@ def topology():
 
     info("*** Replaying Mobility\n")
     ReplayingMobility(net)
+
+    app = create_app(net)
+    app.run()
 
     info("*** Running CLI\n")
     CLI(net)
@@ -114,17 +115,17 @@ def get_trace(sta,start_pos, midle_pos, final_pos):
 if __name__ == '__main__':
     setLogLevel('info')
 
-    def update_trace():
-        time.sleep(10)
-        new_vel = (1,1)
-        n = len(net.get("sta1").p)
-        if n > 0:
-            curr_pos = net.get("sta1").p[0]
-            new_trace = [(curr_pos[0] + k*new_vel[1], curr_pos[0] + k*new_vel[1], 0.0) for k in range(n)]
-            net.get("sta1").p = new_trace
+    # def update_trace():
+    #     time.sleep(10)
+    #     new_vel = (1,1)
+    #     n = len(net.get("sta1").p)
+    #     if n > 0:
+    #         curr_pos = net.get("sta1").p[0]
+    #         new_trace = [(curr_pos[0] + k*new_vel[1], curr_pos[0] + k*new_vel[1], 0.0) for k in range(n)]
+    #         net.get("sta1").p = new_trace
 
-    thread = threading.Thread(target=update_trace)
-    thread.start()
+    # thread = threading.Thread(target=update_trace)
+    # thread.start()
 
     topology()
 
