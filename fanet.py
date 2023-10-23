@@ -21,13 +21,14 @@ def topology():
 
     info("*** Creating nodes\n")
     sta1 = net.addStation('sta1', mac='00:00:00:00:00:02',
-                          ip='10.0.0.1/8', speed=1)
+                          ip='10.0.0.1/8', speed=1, inNamespace=False) #! inNamespace=False is necessary for drone to access Flask HTTP server that we'll
+                                                                       #! create in the root namespace
     sta2 = net.addStation('sta2', mac='00:00:00:00:00:03',
-                          ip='10.0.0.2/8', speed=1)
+                          ip='10.0.0.2/8', speed=1, inNamespace=False)
     sta3 = net.addStation('sta3', mac='00:00:00:00:00:04',
-                          ip='10.0.0.3/8', speed=1)
+                          ip='10.0.0.3/8', speed=1, inNamespace=False)
     sta4 = net.addStation('sta4', mac='00:00:00:00:00:05',
-                          ip='10.0.0.4/8', speed=1)
+                          ip='10.0.0.4/8', speed=1, inNamespace=False)
     #ap1 = net.addAccessPoint('ap1', ssid='new-ssid', mode='g', channel='1',
     #                         position='45,45,0')
     #c1 = net.addController('c1', controller=Controller)
@@ -61,7 +62,11 @@ def topology():
     ReplayingMobility(net)
 
     app = create_app(net)
-    app.run()
+    # app.run()
+    thread = threading.Thread(target=app.run)
+    thread.daemon = True
+    thread.start()
+    print("*** Initiated HTTP server for changing directions of drones on request")
 
     info("*** Running CLI\n")
     CLI(net)
