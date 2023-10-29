@@ -30,12 +30,12 @@ def create_app(net):
         final_pos = (lon_final, lat_final, 0.0)
         n = 60
         path_len=n/3
-        wait_len = n - path_len
+        wait_len = n - path_len 
         if path_len > 0:
             curr_pos = net.get(node).position
             new_vel = ((final_pos[0] - curr_pos[0])/path_len, (final_pos[1] - curr_pos[1])/path_len)
             new_trace = [(curr_pos[0] + k*new_vel[0], curr_pos[1] + k*new_vel[1], 0.0) for k in range(path_len)]
-            for i in range(wait_len):
+            for i in range(10000):
                 new_trace.append(final_pos)
             net.get(node).p = new_trace
         return "Ok", 200 # OK

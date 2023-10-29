@@ -3,6 +3,7 @@ import sys
 import time
 import threading
 
+
 from mininet.node import Controller
 from mininet.log import setLogLevel, info
 from mn_wifi.replaying import ReplayingMobility
@@ -80,40 +81,40 @@ def get_trace(sta,start_pos, midle_pos, final_pos):
     actual_pos = list(start_pos)
     pos = (-1000, 0, 0)
     sta.position = pos
-
-    sta.p.append(tuple(actual_pos))
-    for data in range(10):
-        vel_x = (midle_pos[0] - start_pos[0])/10 # TODO acho q isso podia ficar fora do loop
-        vel_y = (midle_pos[1] - start_pos[1])/10
-        actual_pos[0] += vel_x
-        actual_pos[1] += vel_y
-        actual_pos[2] = 0.0
+    for _ in range(10000):
         sta.p.append(tuple(actual_pos))
+    # for data in range(10):
+    #     vel_x = (midle_pos[0] - start_pos[0])/10 # TODO acho q isso podia ficar fora do loop
+    #     vel_y = (midle_pos[1] - start_pos[1])/10
+    #     actual_pos[0] += vel_x
+    #     actual_pos[1] += vel_y
+    #     actual_pos[2] = 0.0
+    #     sta.p.append(tuple(actual_pos))
         
-    actual_pos=list(midle_pos)
+    # actual_pos=list(midle_pos)
     
-    for data in range(20):
-        sta.p.append(midle_pos)
+    # for data in range(20):
+    #     sta.p.append(midle_pos)
     
-    for data in range(10):
-        vel_x = (final_pos[0] - midle_pos[0])/10
-        vel_y = (final_pos[1] - midle_pos[1])/10
-        actual_pos[0] += vel_x
-        actual_pos[1] += vel_y
-        actual_pos[2] = 0.0
-        sta.p.append(tuple(actual_pos))
+    # for data in range(10):
+    #     vel_x = (final_pos[0] - midle_pos[0])/10
+    #     vel_y = (final_pos[1] - midle_pos[1])/10
+    #     actual_pos[0] += vel_x
+    #     actual_pos[1] += vel_y
+    #     actual_pos[2] = 0.0
+    #     sta.p.append(tuple(actual_pos))
     
-    actual_pos = list(final_pos)
-    for data in range(20):
-        sta.p.append(final_pos)
+    # actual_pos = list(final_pos)
+    # for data in range(20):
+    #     sta.p.append(final_pos)
     
-    for data in range(10):
-        vel_x = (start_pos[0] - final_pos[0])/10
-        vel_y = (start_pos[1] - final_pos[1])/10
-        actual_pos[0] += vel_x
-        actual_pos[1] += vel_y
-        actual_pos[2] = 0.0
-        sta.p.append(tuple(actual_pos))
+    # for data in range(10):
+    #     vel_x = (start_pos[0] - final_pos[0])/10
+    #     vel_y = (start_pos[1] - final_pos[1])/10
+    #     actual_pos[0] += vel_x
+    #     actual_pos[1] += vel_y
+    #     actual_pos[2] = 0.0
+    #     sta.p.append(tuple(actual_pos))
     
 
 
