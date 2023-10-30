@@ -63,9 +63,9 @@ def handle_node(node_socket, node_address):
                     break
         if first_message_sent and second_message_sent and not third_message_sent:
             # wait for arrival
-            arrival = node_socket.recv(1024)
-            if arrival != "arrived":
-                print(str(node_address)+ ": Error" + str(arrival.decode()))
+            message = node_socket.recv(1024)
+            if message != "arrived":
+                print(str(node_address)+ ": " + str(arrival.decode()))
             else:
                 print(str(node_address) + ":  arrived")
                 command = "return"
@@ -99,12 +99,14 @@ def handle_master_as_node(myname):
             target = [70, 70, 0]
             arrived = False
             if oks > TOTAL_NODES/2:
-                os.system("python change_my_dir.py " + myname + " 0 0")
+                os.system("python change_my_dir.py " + myname + " 20 20")
             else:
                 os.system("python change_my_dir.py " + myname + " 70 70")
         if first_message_sent and second_message_sent and not third_message_sent:
             if arrived:
-                os.system("python change_my_dir.py " + myname + " 0 0")
+                os.system("python change_my_dir.py " + myname + " 20 20")
+                target = [20, 20, 0]
+                arrived = False
                 third_message_sent = True
                 print("Returning")
 

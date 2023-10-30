@@ -10,6 +10,18 @@ target = [0,0,0]
 EPS = 0.05
 arrived = False
 
+drones = {
+    "sta1": ((20.0, 20.0), (50.0, 50.0), (70.0, 70.0)),
+    "sta2": ((10.0, 20.0), (40.0, 50.0), (60.0, 70.0)),
+    "sta3": ((20.0, 10.0), (50.0, 40.0), (70.0, 60.0)),
+    "sta4": ((10.0, 10.0), (40.0, 40.0), (60.0, 60.0)),
+    "sta5": ((30.0, 30.0), (60.0, 60.0), (80.0, 80.0)),
+    "sta6": ((30.0, 10.0), (60.0, 40.0), (80.0, 60.0)),
+    "sta7": ((10.0, 30.0), (40.0, 60.0), (60.0, 80.0)),
+    "sta8": ((20.0, 30.0), (50.0, 60.0), (70.0, 70.0)),
+    "sta9": ((30.0, 20.0), (60.0, 50.0), (80.0, 70.0))
+}
+
 def get_ip(node_name):
     #I want to run ifconfig node_name command and get the ip address
     ifconfig_output = subprocess.check_output(["ifconfig", node_name]).decode("utf-8")
@@ -25,31 +37,30 @@ def handle_communication():
         if not data:
             break
         if (data == "move to p2"):
-            #call change_my_dir.py in terminal
-            os.system("python change_my_dir.py " + myname + " 50 50")
-            reply = myname + " going to 50 50"
-            target = [50,50,0]
+            target = drones[myname][1]
             arrived = False
+            #call change_my_dir.py in terminal
+            os.system("python change_my_dir.py " + myname + " %s %s" % (target[1], target[0]))
+            reply = myname + " going to 50 50"
             node_socket.send(reply)
         if (data == "move to p3"):
-            #call change_my_dir.py in terminal
-            os.system("python change_my_dir.py " + myname + " 70 70")
-            reply = myname + " going to 70 70"
-            target = [70,70,0]
+            target = drones[myname][2]
             arrived = False
+            #call change_my_dir.py in terminal
+            os.system("python change_my_dir.py " + myname + " %s %s" % (target[1], target[0]))
+            reply = myname + " going to 70 70"
             node_socket.send(reply)
         if (data == "return"):
-            #call change_my_dir.py in terminal
-            os.system("python change_my_dir.py " + myname + " 0 0")
-            reply = myname + " going to 0 0"
-            target = [0,0,0]
+            target = drones[myname][0]
             arrived = False
+            #call change_my_dir.py in terminal
+            os.system("python change_my_dir.py " + myname + " %s %s" % (target[1], target[0]))
+            reply = myname + " going to 0 0"
             node_socket.send(reply)
     node_socket.close()
 
 def get_pos():
-    global pos
-    global arrived
+    global pos, arrived, target
     while True:
         time.sleep(5)
         r = requests.get("http://127.0.0.1:5000/give-position", params={"node": myname})
