@@ -39,5 +39,12 @@ def create_app(net):
                 new_trace.append(final_pos)
             net.get(node).p = new_trace
         return "Ok", 200 # OK
+    
+    @app.route('/give-position', methods=['GET'])
+    def give_position():
+        node = request.args.get("node")
+        print(net.get(node).position)
+        return {"position": net.get(node).position}, 200 # OK
+        
 
     return app
