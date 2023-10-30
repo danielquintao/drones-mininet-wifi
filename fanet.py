@@ -40,22 +40,13 @@ def topology():
                           ip='10.0.0.8/8', speed=1, inNamespace=False)
     sta9 = net.addStation('sta9', mac='00:00:00:00:00:10',
                           ip='10.0.0.9/8', speed=1, inNamespace=False)
-    #ap1 = net.addAccessPoint('ap1', ssid='new-ssid', mode='g', channel='1',
-    #                         position='45,45,0')
-    #c1 = net.addController('c1', controller=Controller)
+
     info("*** Configuring Propagation Model\n")
     net.setPropagationModel(model="logDistance", exp=4.5)
 
     info("*** Configuring nodes\n")
     net.configureNodes()
 
-    # Create points
-    p2 = net.addAccessPoint("p2", mac='00:00:00:00:00:20')
-    p3 = net.addAccessPoint("p3",  mac='00:00:00:00:00:30')
-    p2.lastpos = (50,50,0)
-    p2.position = (50,50,0)
-    p3.position = (70,70,0)
-    p3.lastpos = (70,70,0)
 
     info("*** Creating links\n")
     net.addLink(sta1, cls=adhoc, intf='sta1-wlan0', ssid='adhocNet')
@@ -71,7 +62,7 @@ def topology():
     net.isReplaying = True
     set_pos(sta1,(20.0,20.0,0))
     set_pos(sta2,(10.0,20.0,0))
-    set_pos(sta3,(20.0,10.0,0) )
+    set_pos(sta3,(20.0,10.0,0))
     set_pos(sta4,(10.0,10.0,0))
     set_pos(sta5,(30.0,30.0,0))
     set_pos(sta6,(30.0,10.0,0))
@@ -83,8 +74,6 @@ def topology():
 
     info("*** Starting network\n")
     net.build()
-    #c1.start()
-    #ap1.start([c1])
 
     info("*** Replaying Mobility\n")
     ReplayingMobility(net)
