@@ -30,27 +30,54 @@ def topology():
                           ip='10.0.0.3/8', speed=1, inNamespace=False)
     sta4 = net.addStation('sta4', mac='00:00:00:00:00:05',
                           ip='10.0.0.4/8', speed=1, inNamespace=False)
+    sta5 = net.addStation('sta5', mac='00:00:00:00:00:06',
+                          ip='10.0.0.5/8', speed=1, inNamespace=False)
+    sta6 = net.addStation('sta6', mac='00:00:00:00:00:07',
+                          ip='10.0.0.6/8', speed=1, inNamespace=False)
+    sta7 = net.addStation('sta7', mac='00:00:00:00:00:08',
+                          ip='10.0.0.7/8', speed=1, inNamespace=False)
+    sta8 = net.addStation('sta8', mac='00:00:00:00:00:09',
+                          ip='10.0.0.8/8', speed=1, inNamespace=False)
+    sta9 = net.addStation('sta9', mac='00:00:00:00:00:10',
+                          ip='10.0.0.9/8', speed=1, inNamespace=False)
     #ap1 = net.addAccessPoint('ap1', ssid='new-ssid', mode='g', channel='1',
     #                         position='45,45,0')
     #c1 = net.addController('c1', controller=Controller)
-
     info("*** Configuring Propagation Model\n")
     net.setPropagationModel(model="logDistance", exp=4.5)
 
     info("*** Configuring nodes\n")
     net.configureNodes()
 
+    # Create points
+    p2 = net.addAccessPoint("p2", mac='00:00:00:00:00:20')
+    p3 = net.addAccessPoint("p3",  mac='00:00:00:00:00:30')
+    p2.lastpos = (50,50,0)
+    p2.position = (50,50,0)
+    p3.position = (70,70,0)
+    p3.lastpos = (70,70,0)
+
     info("*** Creating links\n")
     net.addLink(sta1, cls=adhoc, intf='sta1-wlan0', ssid='adhocNet')
     net.addLink(sta2, cls=adhoc, intf='sta2-wlan0', ssid='adhocNet')
     net.addLink(sta3, cls=adhoc, intf='sta3-wlan0', ssid='adhocNet')
     net.addLink(sta4, cls=adhoc, intf='sta4-wlan0', ssid='adhocNet')
+    net.addLink(sta5, cls=adhoc, intf='sta5-wlan0', ssid='adhocNet')
+    net.addLink(sta6, cls=adhoc, intf='sta6-wlan0', ssid='adhocNet')
+    net.addLink(sta7, cls=adhoc, intf='sta7-wlan0', ssid='adhocNet')
+    net.addLink(sta8, cls=adhoc, intf='sta8-wlan0', ssid='adhocNet')
+    net.addLink(sta9, cls=adhoc, intf='sta9-wlan0', ssid='adhocNet')
 
     net.isReplaying = True
-    get_trace(sta1,(20.0,20.0,0),(40.0,20.0,0),(40.0,40.0,0))
-    get_trace(sta2,(10.0,20.0,0),(30.0,20.0,0),(30.0,40.0,0))
-    get_trace(sta3,(20.0,10.0,0),(40.0,10.0,0),(40.0,30.0,0) )
-    get_trace(sta4,(10.0,10.0,0),(30.0,10.0,0),(30.0,30.0,0))
+    set_pos(sta1,(20.0,20.0,0))
+    set_pos(sta2,(10.0,20.0,0))
+    set_pos(sta3,(20.0,10.0,0) )
+    set_pos(sta4,(10.0,10.0,0))
+    set_pos(sta5,(30.0,30.0,0))
+    set_pos(sta6,(30.0,10.0,0))
+    set_pos(sta7,(10.0,30.0,0))
+    set_pos(sta8,(20.0,30.0,0))
+    set_pos(sta9,(30.0,20.0,0))
 
     net.plotGraph(max_x=100, max_y=100)
 
@@ -76,62 +103,18 @@ def topology():
     net.stop()
 
 
-def get_trace(sta,start_pos, midle_pos, final_pos):
+def set_pos(sta,start_pos):
     sta.p = []
     actual_pos = list(start_pos)
     pos = (-1000, 0, 0)
     sta.position = pos
     for _ in range(10000):
         sta.p.append(tuple(actual_pos))
-    # for data in range(10):
-    #     vel_x = (midle_pos[0] - start_pos[0])/10 # TODO acho q isso podia ficar fora do loop
-    #     vel_y = (midle_pos[1] - start_pos[1])/10
-    #     actual_pos[0] += vel_x
-    #     actual_pos[1] += vel_y
-    #     actual_pos[2] = 0.0
-    #     sta.p.append(tuple(actual_pos))
-        
-    # actual_pos=list(midle_pos)
-    
-    # for data in range(20):
-    #     sta.p.append(midle_pos)
-    
-    # for data in range(10):
-    #     vel_x = (final_pos[0] - midle_pos[0])/10
-    #     vel_y = (final_pos[1] - midle_pos[1])/10
-    #     actual_pos[0] += vel_x
-    #     actual_pos[1] += vel_y
-    #     actual_pos[2] = 0.0
-    #     sta.p.append(tuple(actual_pos))
-    
-    # actual_pos = list(final_pos)
-    # for data in range(20):
-    #     sta.p.append(final_pos)
-    
-    # for data in range(10):
-    #     vel_x = (start_pos[0] - final_pos[0])/10
-    #     vel_y = (start_pos[1] - final_pos[1])/10
-    #     actual_pos[0] += vel_x
-    #     actual_pos[1] += vel_y
-    #     actual_pos[2] = 0.0
-    #     sta.p.append(tuple(actual_pos))
     
 
 
 if __name__ == '__main__':
     setLogLevel('info')
-
-    # def update_trace():
-    #     time.sleep(10)
-    #     new_vel = (1,1)
-    #     n = len(net.get("sta1").p)
-    #     if n > 0:
-    #         curr_pos = net.get("sta1").p[0]
-    #         new_trace = [(curr_pos[0] + k*new_vel[1], curr_pos[0] + k*new_vel[1], 0.0) for k in range(n)]
-    #         net.get("sta1").p = new_trace
-
-    # thread = threading.Thread(target=update_trace)
-    # thread.start()
 
     topology()
 
