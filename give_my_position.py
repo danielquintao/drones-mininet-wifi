@@ -17,5 +17,4 @@ args = parser.parse_args()
 r = requests.get(MN_SERVER, params={"node": args.node})
 if r.status_code != 200:
     print("\033[93mRequest to %s responded with status %s -> unable to change direction\033[0m" % (MN_SERVER, r.status_code))
-else:
-    print("\033[92mMy position: %s\033[0m" % (r.json()["position"]))
+
