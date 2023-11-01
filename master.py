@@ -77,8 +77,8 @@ def handle_node(node_socket, node_address):
                 node_name = message[0:3]
                 arrvial_msg = message[4:]
                 if arrvial_msg != "arrived":
-                    if arrival[0:2] == "OK":
-                        print(str(arrival[2:])+ ": Moving to p3")
+                    if message[0:2] == "OK":
+                        print(str(message[2:])+ ": Moving to p3")
                     else:
                         print(str(node_address)+ ": " + str(arrival.decode()))
                 else:
