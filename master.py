@@ -5,6 +5,7 @@ import sys
 import threading
 import time
 import requests
+import random
 
 # Create a shared flag and a lock
 
@@ -130,6 +131,16 @@ def handle_master_as_node(myname):
             first_message_sent = True
             target = [50,50,0]
             arrived = False
+        if first_message_sent and not second_message_sent and len(votes) == TOTAL_NODES - 1:
+            # time for master to vote
+            # (master is very polite, it waited for the other drones to vote first)
+            vote_yes = random.random() < 0.6
+            if vote_yes:
+                votes.append(1)
+                print("Master vote:  yes")
+            if not vote_yes:
+                votes.append(0)
+                print("Master vote:  no")
         if first_message_sent and not second_message_sent and len(votes) ==  TOTAL_NODES:
             second_message_sent = True
             oks = votes.count(1)
@@ -179,16 +190,6 @@ def main():
     
     master_connections_thread = threading.Thread(target=handle_connections, args=(master_socket,))
     master_connections_thread.start()
-    vote_sent = False
-    while True:
-        action = raw_input()
-        if action == "y" and not vote_sent:
-            votes.append(1)
-            print("Master vote:  yes")
-        if action == "n"  and not vote_sent:
-            votes.append(0)
-            print("Master vote:  no")
-
 
     
 if __name__ == '__main__':
