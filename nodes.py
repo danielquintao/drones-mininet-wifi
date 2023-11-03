@@ -52,7 +52,7 @@ def handle_communication():
             #vote YES with 60% probability
             voting_state=True
             if (random.random() < 0.6):
-                reply = "OK"
+                reply = "OK"  #! CAN CONFUSE WITH OTHER OK's IN PROTOCOL... WHAT ABOUT USING "YES" INSTEAD?
             else:
                 reply = "NO"
             node_socket.send(reply) 
@@ -71,7 +71,7 @@ def handle_communication():
             #call change_my_dir.py in terminal
             time.sleep(1)
             os.system("python change_my_dir.py " + myname + " %s %s" % (target[1], target[0]))
-            reply = myname + " going to 0 0"
+            reply = myname + " going to 20 20"
             node_socket.send(reply)
     node_socket.close()
 
