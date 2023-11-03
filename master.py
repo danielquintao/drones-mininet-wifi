@@ -28,8 +28,9 @@ def handle_node(node_socket, node_address):
     first_message_sent = False
     second_message_sent = False
     third_message_sent = False
+    finished = False
     while True:
-        # Receive commands from the master
+        # Send commands to follower
         if len(connected_nodes) == TOTAL_NODES - 1 and not first_message_sent:
             command = "move to p2"
             node_socket.send(command.encode())
@@ -40,14 +41,14 @@ def handle_node(node_socket, node_address):
             # wait for arrival
             while True:
                 arrival = node_socket.recv(1024)
-                node_name = arrival[0:4]
                 arrvial_msg = arrival[4:]
                 if arrvial_msg != "arrived":
                     if arrival[0:2] == "OK":
                         print(str(arrival[2:])+ ": Moving to p2")
                     else:
-                        print(str(node_address)+ ": Error")
+                        print(str(node_address)+ ": Error")   #? msg "<drone> going to 50 50" will be interpreted as error?
                 else:
+                    node_name = arrival[0:4]
                     print(str(node_name) + ":  arrived")
                     command = "vote"
                     node_socket.send(command.encode())
@@ -65,6 +66,7 @@ def handle_node(node_socket, node_address):
                     oks = votes.count(1)
                     if oks > TOTAL_NODES/2:
                         command = "return"
+                        third_message_sent = True
                     else:
                         command = "move to p3"
                     node_socket.send(command.encode())
@@ -80,15 +82,32 @@ def handle_node(node_socket, node_address):
                     if message[0:2] == "OK":
                         print(str(message[2:])+ ": Moving to p3")
                     else:
-                        print(str(node_address)+ ": " + str(arrival.decode()))
+                        print(str(node_address)+ ": " + str(message.decode()))
                 else:
                     time.sleep(3)
                     print(str(node_name) + ":  arrived")
                     command = "return"
                     node_socket.send(command.encode())
-                    third_message_sent = True,
+                    third_message_sent = True
                     break
-        
+        if first_message_sent and second_message_sent and third_message_sent and not finished:
+            # wait for arrival
+            while True:
+                message = node_socket.recv(1024)
+                node_name = message[0:3]
+                arrvial_msg = message[4:]
+                if arrvial_msg != "arrived":
+                    if message[0:2] == "OK":
+                        print(str(message[2:])+ ": returning to p1")
+                    else:
+                        print(str(node_address)+ ": " + str(message.decode()))
+                else:
+                    time.sleep(3)
+                    print(str(node_name) + ":  arrived")
+                    command = "return"
+                    node_socket.send(command.encode())
+                    finished = True
+                    break
 
 def handle_master_as_node(myname):
     global target
@@ -152,7 +171,7 @@ def main():
     # Create a socket for the master
     master_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     master_socket.bind((my_ip, master_port))
-    master_socket.listen(5)
+    master_socket.listen(8)
 
     print("Master is listening on " + my_ip + ":" + str(master_port))
     master_node_thread = threading.Thread(target=handle_master_as_node, args=(myname,))
