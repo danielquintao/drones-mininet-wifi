@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import threading
+import logging
 
 
 from mininet.node import Controller
@@ -79,11 +80,12 @@ def topology():
     ReplayingMobility(net)
 
     app = create_app(net)
-    # app.run()
     thread = threading.Thread(target=app.run)
     thread.daemon = True
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)  # do not flush the infinity of Flask messages to stdout
     thread.start()
-    print("*** Initiated HTTP server for changing directions of drones on request")
+    info("*** Initiated HTTP server for changing directions of drones on request")
 
     info("*** Running CLI\n")
     CLI(net)

@@ -42,7 +42,6 @@ def create_app(net):
     @app.route('/give-position', methods=['GET'])
     def give_position():
         node = request.args.get("node")
-        print(net.get(node).position)
         return {"position": net.get(node).position}, 200 # OK
         
 
