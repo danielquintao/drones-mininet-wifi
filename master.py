@@ -42,11 +42,17 @@ def handle_node(node_socket, node_address):
             # wait for arrival
             while True:
                 arrival = node_socket.recv(1024)
+                if arrival == "":
+                    return
                 arrvial_msg = arrival[4:]
                 if arrvial_msg != "arrived":
                     if arrival[0:2] == "OK":
                         print(str(arrival[2:])+ ": Moving to p2")
+                        command = "OK-master-recieved"
+                        #send OK to node
+                        node_socket.send(command.encode())
                     else:
+                        print(arrival)
                         print(str(node_address)+ ": Error")   #? msg "<drone> going to 50 50" will be interpreted as error?
                 else:
                     node_name = arrival[0:4]
@@ -77,11 +83,16 @@ def handle_node(node_socket, node_address):
             # wait for arrival
             while True:
                 message = node_socket.recv(1024)
+                if message == "":
+                    return
                 node_name = message[0:3]
                 arrvial_msg = message[4:]
                 if arrvial_msg != "arrived":
                     if message[0:2] == "OK":
                         print(str(message[2:])+ ": Moving to p3")
+                        command = "OK-master-recieved"
+                        #send OK to node
+                        node_socket.send(command.encode())
                     else:
                         print(str(node_address)+ ": " + str(message.decode()))
                 else:
@@ -97,9 +108,14 @@ def handle_node(node_socket, node_address):
                 message = node_socket.recv(1024)
                 node_name = message[0:3]
                 arrvial_msg = message[4:]
+                if message == "":
+                    return
                 if arrvial_msg != "arrived":
                     if message[0:2] == "OK":
                         print(str(message[2:])+ ": returning to p1")
+                        command = "OK-master-recieved"
+                        #send OK to node
+                        node_socket.send(command.encode())
                     else:
                         print(str(node_address)+ ": " + str(message.decode()))
                 else:
@@ -117,7 +133,7 @@ def handle_master_as_node(myname):
     third_message_sent = False
     arrived = False
     while True:
-        time.sleep(5)
+        time.sleep(1)
         r = requests.get("http://127.0.0.1:5000/give-position", params={"node": myname})
         pos = r.json()["position"]
         dist2 = (pos[0] - target[0])**2 + (pos[1] - target[1])**2
