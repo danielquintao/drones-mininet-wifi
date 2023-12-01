@@ -27,11 +27,12 @@ def get_ip(node_name):
             return line.split()[1]
     return None
 
-def handle_node(node_socket, node_address):
+def handle_node(node_socket, node_address, node_lost_in_votation):
     first_message_sent = False
     second_message_sent = False
     third_message_sent = False
     finished = False
+    node_name = None
     while True:
         # Send commands to follower
         if len(connected_nodes) == TOTAL_NODES - 1 and not first_message_sent:
@@ -71,6 +72,9 @@ def handle_node(node_socket, node_address):
                 votes.append(0)
             # wait for all votes
             while True:
+                if node_name == node_lost_in_votation:
+                    print("**losing connection with %s** (de proposito)" % (node_name,))
+                    exit()  # simulate lost connection
                 if votation_ended:
                     oks = votes.count(1)
                     if oks > TOTAL_NODES/2:
@@ -191,7 +195,7 @@ def handle_master_as_node(myname):
                 third_message_sent = True
                 print("Returning")
 
-def handle_connections(master_socket):
+def handle_connections(master_socket, node_lost_in_votation):
     while True:
         # Accept incoming connections from slaves
         node_socket, node_address = master_socket.accept()
@@ -199,7 +203,7 @@ def handle_connections(master_socket):
         connected_nodes.append(node_address)
 
         # Create a thread to handle communication with the slave
-        slave_thread = threading.Thread(target=handle_node, args=(node_socket, node_address))
+        slave_thread = threading.Thread(target=handle_node, args=(node_socket, node_address, node_lost_in_votation))
         slave_thread.start()
 
 def main():
@@ -208,6 +212,8 @@ def main():
     master_port = 12345
     myname = sys.argv[1]
     my_ip = get_ip(myname+ "-wlan0")
+
+    node_lost_in_votation = raw_input("If you want to simulate a node losing communication during votation, type its name here, or just leave empty ")
 
     # Create a socket for the master
     master_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -218,7 +224,7 @@ def main():
     master_node_thread = threading.Thread(target=handle_master_as_node, args=(myname,))
     master_node_thread.start()
     
-    master_connections_thread = threading.Thread(target=handle_connections, args=(master_socket,))
+    master_connections_thread = threading.Thread(target=handle_connections, args=(master_socket, node_lost_in_votation))
     master_connections_thread.start()
 
     

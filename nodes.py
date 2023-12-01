@@ -60,13 +60,22 @@ def give_the_shorter_safe_zone(pos):
 
 def handle_communication():
     global target, arrived, voting_state, start_move,go_to_safe_zone
+    clock = None
     while go_to_safe_zone==False:
-        node_socket.settimeout(4.0)
+        if voting_state:
+            node_socket.settimeout(8.0)  # wait longer during votation because other followers may delay votation result
+        else:
+            node_socket.settimeout(4.0)
         try:
+            if voting_state and clock and time.time() - clock > 8:  # timeout waiting for votation...
+                print("votation timeout")
+                raise socket.timeout
             data = node_socket.recv(1024)
-            if not data:
-                break
+            # if not data:
+            #     print("RECEIVED EMPTY DATA")
+            #     break
             if (data == "move to p2"):
+                voting_state=False
                 start_move=True
                 target = drones[myname][1]
                 arrived = False
@@ -79,10 +88,11 @@ def handle_communication():
                 #vote YES with 60% probability
                 voting_state=True
                 if (random.random() < 0.6):
-                    reply = "OK"  #! CAN CONFUSE WITH OTHER OK's IN PROTOCOL... WHAT ABOUT USING "YES" INSTEAD?
+                    reply = "OK"
                 else:
                     reply = "NO"
                 node_socket.send(reply) 
+                clock = time.time()
             if (data == "move to p3"):
                 voting_state=False
                 target = drones[myname][2]
@@ -93,6 +103,7 @@ def handle_communication():
                 reply = myname + " going to 70 70"
                 node_socket.send(reply)
             if (data == "return"):
+                voting_state=False
                 target = drones[myname][0]
                 arrived = False
                 #call change_my_dir.py in terminal
@@ -101,7 +112,7 @@ def handle_communication():
                 reply = myname + " going to 20 20"
                 node_socket.send(reply)
         except:
-            if(start_move==True and voting_state == False):
+            if start_move:
                 print("timeout going to safe zone")
                 go_to_safe_zone=True
     node_socket.close()
