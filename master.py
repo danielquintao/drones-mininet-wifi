@@ -15,6 +15,8 @@ EPS = 0.05
 target = [0,0,0]
 votes = []
 return_flag = False
+votation_clock_expired = False
+votation_ended = False
 
 
 def get_ip(node_name):
@@ -48,7 +50,7 @@ def handle_node(node_socket, node_address):
                 if arrvial_msg != "arrived":
                     if arrival[0:2] == "OK":
                         print(str(arrival[2:])+ ": Moving to p2")
-                        command = "OK-master-recieved"
+                        command = "OK-master-received"
                         #send OK to node
                         node_socket.send(command.encode())
                     else:
@@ -69,7 +71,7 @@ def handle_node(node_socket, node_address):
                 votes.append(0)
             # wait for all votes
             while True:
-                if len(votes) == TOTAL_NODES:
+                if votation_ended:
                     oks = votes.count(1)
                     if oks > TOTAL_NODES/2:
                         command = "return"
@@ -90,7 +92,7 @@ def handle_node(node_socket, node_address):
                 if arrvial_msg != "arrived":
                     if message[0:2] == "OK":
                         print(str(message[2:])+ ": Moving to p3")
-                        command = "OK-master-recieved"
+                        command = "OK-master-received"
                         #send OK to node
                         node_socket.send(command.encode())
                     else:
@@ -113,7 +115,7 @@ def handle_node(node_socket, node_address):
                 if arrvial_msg != "arrived":
                     if message[0:2] == "OK":
                         print(str(message[2:])+ ": returning to p1")
-                        command = "OK-master-recieved"
+                        command = "OK-master-received"
                         #send OK to node
                         node_socket.send(command.encode())
                     else:
@@ -132,6 +134,9 @@ def handle_master_as_node(myname):
     second_message_sent = False
     third_message_sent = False
     arrived = False
+    global votation_clock_expired
+    global votation_ended
+    votation_clock = None
     while True:
         time.sleep(1)
         r = requests.get("http://127.0.0.1:5000/give-position", params={"node": myname})
@@ -140,6 +145,10 @@ def handle_master_as_node(myname):
         if dist2 < EPS and not arrived:
             print("Master: arrived")
             arrived = True
+            if first_message_sent and not second_message_sent and votation_clock is None:
+                # start votation clock when master arrives at place of votation
+                print("Starting votation clock")
+                votation_clock = time.time()
 
         if len(connected_nodes) == TOTAL_NODES - 1 and not first_message_sent:
             time.sleep(1)
@@ -147,7 +156,12 @@ def handle_master_as_node(myname):
             first_message_sent = True
             target = [50,50,0]
             arrived = False
-        if first_message_sent and not second_message_sent and len(votes) == TOTAL_NODES - 1:
+        if first_message_sent and not second_message_sent and not votation_clock_expired:
+            # votation clock expired!
+            if votation_clock is not None and time.time() - votation_clock > 5:  # 5s
+                votation_clock_expired = True
+                print("Votation clock expired!")
+        if first_message_sent and not second_message_sent and (len(votes) == TOTAL_NODES - 1 or votation_clock_expired):
             # time for master to vote
             # (master is very polite, it waited for the other drones to vote first)
             vote_yes = random.random() < 0.6
@@ -157,7 +171,7 @@ def handle_master_as_node(myname):
             if not vote_yes:
                 votes.append(0)
                 print("Master vote:  no")
-        if first_message_sent and not second_message_sent and len(votes) ==  TOTAL_NODES:
+            votation_ended = True
             second_message_sent = True
             oks = votes.count(1)
             target = [70, 70, 0]
