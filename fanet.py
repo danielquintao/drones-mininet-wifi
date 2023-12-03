@@ -53,8 +53,8 @@ def topology():
     sz2 = net.addAccessPoint("sz2", mac='00:00:00:00:00:50')
     sz3 = net.addAccessPoint("sz3", mac='00:00:00:00:00:60')
     
-    sz1.lastpos = (35.0, 27.0, 0)
-    sz1.position = (35.0, 27.0,0)
+    sz1.lastpos = (50.0, 20.0, 0)
+    sz1.position = (50.0, 20.0,0)
     sz2.position = (85.0, 55.0,0)
     sz2.lastpos = (85.0, 55.0,0)
     sz3.position = (15.0, 65.0,0)

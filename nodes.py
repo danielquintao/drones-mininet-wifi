@@ -30,7 +30,7 @@ drones = {
 }
 
 safe_zone = {
-    "zone1": (35.0, 27.0),
+    "zone1": (50.0, 20.0),
     "zone2": (85.0, 55.0),
     "zone3": (15.0, 65.0),
 }
@@ -125,8 +125,10 @@ def get_pos():
             node_socket.send("OK " + myname)
             time.sleep(1)
         if dist2 < EPS and not arrived:
-            if target== drones[myname][2]:
+            if target == drones[myname][2]:
                 in_p3 = True
+                start_move = False
+            if target == drones[myname][0]:
                 start_move = False
             node_socket.send(myname + " arrived at " + str(target))
             arrived = True
