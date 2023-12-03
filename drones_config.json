@@ -1,0 +1,5 @@
+{
+    "VOTATION_TIMEOUT": 8,
+    "TIMEOUT": 6,
+    "VOTE_PROB":  0.6
+}

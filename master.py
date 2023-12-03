@@ -6,6 +6,7 @@ import threading
 import time
 import requests
 import random
+import json
 
 # Create a shared flag and a lock
 
@@ -13,6 +14,7 @@ connected_nodes = []
 TOTAL_NODES = 9
 EPS = 0.05
 VOTATION_TIMEOUT = 8
+VOTE_PROB = 0.6
 target = [0,0,0]
 votes = []
 return_flag = False
@@ -161,7 +163,7 @@ def handle_master_as_node(myname):
         if first_message_sent and not second_message_sent and (len(votes) == TOTAL_NODES - 1 or votation_clock_expired):
             # time for master to vote
             # (master is very polite, it waited for the other drones to vote first)
-            vote_yes = random.random() < 0.6
+            vote_yes = random.random() < VOTE_PROB
             if vote_yes:
                 votes.append(1)
                 print("Master vote:  yes")
@@ -202,10 +204,18 @@ def handle_connections(master_socket, node_lost_in_votation):
 
 def main():
     global return_flag
+    global VOTATION_TIMEOUT
+    global VOTE_PROB
     # Set the master's IP address and port
     master_port = 12345
     myname = sys.argv[1]
     my_ip = get_ip(myname+ "-wlan0")
+
+    # read config
+    with open("drones_config.json", "r") as f:
+        config = json.load(f)
+        VOTATION_TIMEOUT = config["VOTATION_TIMEOUT"]
+        VOTE_PROB = config["VOTE_PROB"]
 
     node_lost_in_votation = raw_input("If you want to simulate a node losing communication during votation, type its name here, or just leave empty ")
 

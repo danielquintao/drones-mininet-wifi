@@ -6,6 +6,7 @@ import threading
 import time
 import requests
 import random
+import json
 
 target = [0,0,0]
 EPS = 0.05
@@ -141,6 +142,12 @@ def get_pos():
                 break
       
         
+
+# read config
+with open("drones_config.json", "r") as f:
+    config = json.load(f)
+    TIMEOUT = config["TIMEOUT"]
+    VOTE_PROB = config["VOTE_PROB"]
 
 master_name = sys.argv[1]
 myname = sys.argv[2]
