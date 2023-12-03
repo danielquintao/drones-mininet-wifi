@@ -14,8 +14,9 @@ start_move = False
 voting_state = False
 comunication = True
 go_to_safe_zone = False
+in_p3 = False
 TIMEOUT=6
-VOTE_PROB = 0.6
+VOTE_PROB = 0.1
 drones = {
     "sta1": ((20.0, 20.0), (50.0, 50.0), (70.0, 70.0)),
     "sta2": ((10.0, 20.0), (40.0, 50.0), (60.0, 70.0)),
@@ -60,7 +61,7 @@ def give_the_shorter_safe_zone(pos):
     
 
 def handle_communication():
-    global target, arrived, voting_state, start_move,go_to_safe_zone, comunication
+    global target, arrived, voting_state, start_move,go_to_safe_zone, comunication, in_p3
     while go_to_safe_zone==False:
         if voting_state:
             node_socket.settimeout(2*TIMEOUT)  # wait longer during votation because other followers may delay votation result
@@ -101,6 +102,8 @@ def handle_communication():
                 voting_state=False
                 target = drones[myname][0]
                 arrived = False
+                in_p3 = False
+                start_move = True
                 #call change_my_dir.py in terminal
                 os.system("python change_my_dir.py " + myname + " %s %s" % (target[1], target[0]))
                 reply = myname + " returning"
@@ -113,15 +116,18 @@ def handle_communication():
     node_socket.close()
 
 def get_pos():
-    global pos, arrived, target,voting_state,start_move, comunication,go_to_safe_zone
+    global pos, arrived, target,voting_state,start_move, comunication,go_to_safe_zone, in_p3
     while go_to_safe_zone==False:
         r = requests.get("http://127.0.0.1:5000/give-position", params={"node": myname})
         pos = r.json()["position"]
         dist2 = (pos[0] - target[0])**2 + (pos[1] - target[1])**2
-        if voting_state == False and start_move == True and comunication == True:
-            time.sleep(1)
+        if voting_state == False and start_move == True and comunication == True and in_p3 == False:
             node_socket.send("OK " + myname)
+            time.sleep(1)
         if dist2 < EPS and not arrived:
+            if target== drones[myname][2]:
+                in_p3 = True
+                start_move = False
             node_socket.send(myname + " arrived at " + str(target))
             arrived = True
             
