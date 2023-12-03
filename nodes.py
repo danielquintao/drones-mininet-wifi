@@ -14,7 +14,8 @@ start_move = False
 voting_state = False
 comunication = True
 go_to_safe_zone = False
-timeout=4
+TIMEOUT=6
+VOTE_PROB = 0.6
 drones = {
     "sta1": ((20.0, 20.0), (50.0, 50.0), (70.0, 70.0)),
     "sta2": ((10.0, 20.0), (40.0, 50.0), (60.0, 70.0)),
@@ -59,77 +60,69 @@ def give_the_shorter_safe_zone(pos):
     
 
 def handle_communication():
-    global target, arrived, voting_state, start_move,go_to_safe_zone
-    clock = None
+    global target, arrived, voting_state, start_move,go_to_safe_zone, comunication
     while go_to_safe_zone==False:
         if voting_state:
-            node_socket.settimeout(8.0)  # wait longer during votation because other followers may delay votation result
+            node_socket.settimeout(2*TIMEOUT)  # wait longer during votation because other followers may delay votation result
         else:
-            node_socket.settimeout(4.0)
+            node_socket.settimeout(TIMEOUT)
         try:
-            if voting_state and clock and time.time() - clock > 8:  # timeout waiting for votation...
-                print("votation timeout")
-                raise socket.timeout
             data = node_socket.recv(1024)
-            # if not data:
-            #     print("RECEIVED EMPTY DATA")
-            #     break
+            if (data == ""):
+                comunication = False
+                raise socket.timeout
+                
             if (data == "move to p2"):
                 voting_state=False
                 start_move=True
                 target = drones[myname][1]
                 arrived = False
                 #call change_my_dir.py in terminal
-                time.sleep(1)
                 os.system("python change_my_dir.py " + myname + " %s %s" % (target[1], target[0]))
-                reply = myname + " going to 50 50"
+                reply = myname + " going to p2"
                 node_socket.send(reply)
             if (data == "vote"):
                 #vote YES with 60% probability
                 voting_state=True
-                if (random.random() < 0.6):
-                    reply = "OK"
+                if (random.random() < VOTE_PROB):
+                    reply = myname + " OK"
                 else:
-                    reply = "NO"
+                    reply = myname + " NO"
                 node_socket.send(reply) 
-                clock = time.time()
             if (data == "move to p3"):
                 voting_state=False
                 target = drones[myname][2]
                 arrived = False
                 #call change_my_dir.py in terminal
-                time.sleep(1)
                 os.system("python change_my_dir.py " + myname + " %s %s" % (target[1], target[0]))
-                reply = myname + " going to 70 70"
+                reply = myname + " going to p3"
                 node_socket.send(reply)
             if (data == "return"):
                 voting_state=False
                 target = drones[myname][0]
                 arrived = False
                 #call change_my_dir.py in terminal
-                time.sleep(1)
                 os.system("python change_my_dir.py " + myname + " %s %s" % (target[1], target[0]))
-                reply = myname + " going to 20 20"
+                reply = myname + " returning"
                 node_socket.send(reply)
         except:
             if start_move:
                 print("timeout going to safe zone")
                 go_to_safe_zone=True
+                break
     node_socket.close()
 
 def get_pos():
     global pos, arrived, target,voting_state,start_move, comunication,go_to_safe_zone
     while go_to_safe_zone==False:
-        time.sleep(1)
         r = requests.get("http://127.0.0.1:5000/give-position", params={"node": myname})
         pos = r.json()["position"]
         dist2 = (pos[0] - target[0])**2 + (pos[1] - target[1])**2
         if voting_state == False and start_move == True and comunication == True:
-            print(myname + "position: " + str(pos))
-            node_socket.send("OK" + myname)
             time.sleep(1)
+            node_socket.send("OK " + myname)
         if dist2 < EPS and not arrived:
-            node_socket.send(myname + "arrived")
+            node_socket.send(myname + " arrived at " + str(target))
             arrived = True
             
     if go_to_safe_zone==True:
@@ -139,7 +132,6 @@ def get_pos():
         target = safe_zone[zone]
         os.system("python change_my_dir.py " + myname + " %s %s" % (target[1], target[0]))  
         while True:
-            time.sleep(1)
             r = requests.get("http://127.0.0.1:5000/give-position", params={"node": myname})
             pos = r.json()["position"]
             dist2 = (pos[0] - target[0])**2 + (pos[1] - target[1])**2
@@ -157,7 +149,7 @@ my_ip = get_ip(myname+ "-wlan0")
 server_port = 12345
 node_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 node_socket.connect((master_ip, server_port))
-print("Conexao estabelecida")
+print("Connection established")
 
 comm_thread = threading.Thread(target=handle_communication)
 comm_thread.start()
@@ -165,7 +157,10 @@ comm_thread.start()
 pos_thread = threading.Thread(target=get_pos)
 pos_thread.start()
 
-x = raw_input("digite s ou n")
+while True:
+    x = raw_input("Type f to make node lose communication ")
 
-if x == 'n':
-    comunication = False
+    if x == 'f':
+        comunication = False
+        print("failing")
+        break

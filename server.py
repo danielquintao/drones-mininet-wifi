@@ -28,7 +28,7 @@ def create_app(net):
         lat_final = float(request.args.get("latdir"))
         lon_final = float(request.args.get("longdir"))
         final_pos = (lon_final, lat_final, 0.0)
-        n = 75
+        n = 15
         path_len=n
         if path_len > 0:
             curr_pos = net.get(node).position

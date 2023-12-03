@@ -1,0 +1,10 @@
+xterm sta1
+
+py sta2.sendCmd('python nodes.py sta1 sta2')
+py sta3.sendCmd('python nodes.py sta1 sta3')
+py sta4.sendCmd('python nodes.py sta1 sta4')
+py sta5.sendCmd('python nodes.py sta1 sta5')
+py sta6.sendCmd('python nodes.py sta1 sta6')
+py sta7.sendCmd('python nodes.py sta1 sta7')
+py sta8.sendCmd('python nodes.py sta1 sta8')
+py sta9.sendCmd('python nodes.py sta1 sta9')

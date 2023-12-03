@@ -41,6 +41,25 @@ def topology():
                           ip='10.0.0.8/8', speed=1, inNamespace=False)
     sta9 = net.addStation('sta9', mac='00:00:00:00:00:10',
                           ip='10.0.0.9/8', speed=1, inNamespace=False)
+    
+    p2 = net.addAccessPoint("p2", mac='00:00:00:00:00:20')
+    p3 = net.addAccessPoint("p3",  mac='00:00:00:00:00:30')
+    p2.lastpos = (50,50,0)
+    p2.position = (50,50,0)
+    p3.position = (70,70,0)
+    p3.lastpos = (70,70,0)
+
+    sz1 = net.addAccessPoint("sz1", mac='00:00:00:00:00:40')
+    sz2 = net.addAccessPoint("sz2", mac='00:00:00:00:00:50')
+    sz3 = net.addAccessPoint("sz3", mac='00:00:00:00:00:60')
+    
+    sz1.lastpos = (35.0, 27.0, 0)
+    sz1.position = (35.0, 27.0,0)
+    sz2.position = (85.0, 55.0,0)
+    sz2.lastpos = (85.0, 55.0,0)
+    sz3.position = (15.0, 65.0,0)
+    sz3.lastpos = (15.0, 65.0,0)
+
 
     info("*** Configuring Propagation Model\n")
     net.setPropagationModel(model="logDistance", exp=4.5)

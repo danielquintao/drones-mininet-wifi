@@ -12,6 +12,7 @@ import random
 connected_nodes = []
 TOTAL_NODES = 9
 EPS = 0.05
+VOTATION_TIMEOUT = 8
 target = [0,0,0]
 votes = []
 return_flag = False
@@ -39,33 +40,30 @@ def handle_node(node_socket, node_address, node_lost_in_votation):
             command = "move to p2"
             node_socket.send(command.encode())
             first_message_sent = True
-
-            response = node_socket.recv(1024)
-            print(str(node_address) + ":  " + str(response.decode()))
-            # wait for arrival
+            
             while True:
-                arrival = node_socket.recv(1024)
-                if arrival == "":
+                message = node_socket.recv(1024)
+                if message == "":
+                    connected_nodes.remove(node_address)
                     return
-                arrvial_msg = arrival[4:]
-                if arrvial_msg != "arrived":
-                    if arrival[0:2] == "OK":
-                        print(str(arrival[2:])+ ": Moving to p2")
+                arrival_msg = message[5:12]
+                if arrival_msg != "arrived":
+                    if message[0:2] == "OK":
                         command = "OK-master-received"
                         #send OK to node
                         node_socket.send(command.encode())
                     else:
-                        print(arrival)
-                        print(str(node_address)+ ": Error")   #? msg "<drone> going to 50 50" will be interpreted as error?
+                        print(message)
                 else:
-                    node_name = arrival[0:4]
-                    print(str(node_name) + ":  arrived")
+                    print(message)
                     command = "vote"
                     node_socket.send(command.encode())
                     break
         if first_message_sent and not second_message_sent:
-            vote = node_socket.recv(1024)
-            print(str(node_address) + ":  " + str(vote.decode()))
+            message = node_socket.recv(1024)
+            vote = message[5:]
+            node_name = message[:4]
+            print(message)
             if vote == "OK":
                 votes.append(1)
             else:
@@ -77,7 +75,7 @@ def handle_node(node_socket, node_address, node_lost_in_votation):
                     exit()  # simulate lost connection
                 if votation_ended:
                     oks = votes.count(1)
-                    if oks > TOTAL_NODES/2:
+                    if oks > len(votes)/2:
                         command = "return"
                         third_message_sent = True
                     else:
@@ -90,20 +88,19 @@ def handle_node(node_socket, node_address, node_lost_in_votation):
             while True:
                 message = node_socket.recv(1024)
                 if message == "":
+                    connected_nodes.remove(node_address)
                     return
-                node_name = message[0:3]
-                arrvial_msg = message[4:]
-                if arrvial_msg != "arrived":
+                node_name = message[0:4]
+                arrival_msg = message[5:12]
+                if arrival_msg != "arrived":
                     if message[0:2] == "OK":
-                        print(str(message[2:])+ ": Moving to p3")
                         command = "OK-master-received"
                         #send OK to node
                         node_socket.send(command.encode())
                     else:
-                        print(str(node_address)+ ": " + str(message.decode()))
+                        print(message)
                 else:
-                    time.sleep(3)
-                    print(str(node_name) + ":  arrived")
+                    print(message)
                     command = "return"
                     node_socket.send(command.encode())
                     third_message_sent = True
@@ -112,23 +109,21 @@ def handle_node(node_socket, node_address, node_lost_in_votation):
             # wait for arrival
             while True:
                 message = node_socket.recv(1024)
-                node_name = message[0:3]
-                arrvial_msg = message[4:]
                 if message == "":
+                    connected_nodes.remove(node_address)
                     return
-                if arrvial_msg != "arrived":
+                node_name = message[0:4]
+                arrival_msg = message[5:12]
+                if arrival_msg != "arrived":
                     if message[0:2] == "OK":
-                        print(str(message[2:])+ ": returning to p1")
+                        # print(str(message[2:])+ ": returning to p1")
                         command = "OK-master-received"
                         #send OK to node
                         node_socket.send(command.encode())
                     else:
-                        print(str(node_address)+ ": " + str(message.decode()))
+                        print(message)  
                 else:
-                    time.sleep(3)
-                    print(str(node_name) + ":  arrived")
-                    command = "return"
-                    node_socket.send(command.encode())
+                    print(message)
                     finished = True
                     break
 
@@ -142,7 +137,6 @@ def handle_master_as_node(myname):
     global votation_ended
     votation_clock = None
     while True:
-        time.sleep(1)
         r = requests.get("http://127.0.0.1:5000/give-position", params={"node": myname})
         pos = r.json()["position"]
         dist2 = (pos[0] - target[0])**2 + (pos[1] - target[1])**2
@@ -155,14 +149,13 @@ def handle_master_as_node(myname):
                 votation_clock = time.time()
 
         if len(connected_nodes) == TOTAL_NODES - 1 and not first_message_sent:
-            time.sleep(1)
             os.system("python change_my_dir.py " + myname + " 50 50")
             first_message_sent = True
             target = [50,50,0]
             arrived = False
         if first_message_sent and not second_message_sent and not votation_clock_expired:
             # votation clock expired!
-            if votation_clock is not None and time.time() - votation_clock > 5:  # 5s
+            if votation_clock is not None and time.time() - votation_clock > VOTATION_TIMEOUT: 
                 votation_clock_expired = True
                 print("Votation clock expired!")
         if first_message_sent and not second_message_sent and (len(votes) == TOTAL_NODES - 1 or votation_clock_expired):
@@ -178,17 +171,18 @@ def handle_master_as_node(myname):
             votation_ended = True
             second_message_sent = True
             oks = votes.count(1)
-            target = [70, 70, 0]
             arrived = False
-            if oks > TOTAL_NODES/2:
-                time.sleep(1)
+            if oks > len(votes)/2:
                 os.system("python change_my_dir.py " + myname + " 20 20")
+                target = [20, 20, 0]
+                print("Decision: Return")
             else:
-                time.sleep(1)
                 os.system("python change_my_dir.py " + myname + " 70 70")
+                target = [70, 70, 0]
+                print("Decision: Go to P3")
         if first_message_sent and second_message_sent and not third_message_sent:
             if arrived:
-                time.sleep(3)
+                time.sleep(1)
                 os.system("python change_my_dir.py " + myname + " 20 20")
                 target = [20, 20, 0]
                 arrived = False
